@@ -10,6 +10,10 @@ BRANCHES_TO_IGNORE = (ENV["BRANCHES_TO_IGNORE"] || "").split
 LOG = Logger.new(STDOUT)
 LOG.level = Logger::WARN
 
+def log_build(build, action)
+  LOG.warn("Build: #{build['build_num']} #{build['branch']} #{action}")
+end
+
 handler do |job|
   circleci = CircleCi.new(API_TOKEN, USERNAME, PROJECT)
 
@@ -19,8 +23,14 @@ handler do |job|
   branch_builds = {}
   circleci.recent_builds.each do |build|
     next if build["lifecycle"] == "finished"
-    next if BRANCHES_TO_IGNORE.include?(build["branch"])
-    (branch_builds[build["branch"]] ||= []) << build
+    case
+    when BRANCHES_TO_IGNORE.include?(build["branch"])
+      log_build(build, "ignoring")
+    when build["steps"] && build["steps"].any? { |step| step["actions"].any? { |action| action["type"] == "deployment" } }
+      log_build(build, "ignoring because it's in deployment stage")
+    else
+      (branch_builds[build["branch"]] ||= []) << build
+    end
   end
 
   branch_builds.each do |branch, builds|
@@ -28,12 +38,12 @@ handler do |job|
     builds.sort_by! { |build| build["build_num"] }
 
     # Remove the last build for each branch, we want to keep it.
-    LOG.warn("Build: #{builds.last['build_num']} #{builds.last['branch']} keeping")
+    log_build(builds.last, "keeping")
     builds.pop
 
     # Cancel the remaining builds.
     builds.each do |build|
-      LOG.warn("Build: #{build['build_num']} #{build['branch']} canceling")
+      log_build(build, "canceling")
       circleci.cancel_build(build["build_num"])
     end
   end
