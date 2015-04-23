@@ -1,6 +1,13 @@
 # GircleCI
 
-A clockwork application that cancels superfluous builds in queue or running. Builds are cancelled if there is a newer build queued for the same branch.
+A clockwork application that cancels superfluous builds in queue or running.
+
+## Features
+
+* Collects new build state frequently, once every 20 seconds.
+* Cancels builds if a newer build is queued for the same branch.
+* Ignores select branches.
+* Ignores builds that are already in or have completed the deployment phase.
 
 ## Usage
 
