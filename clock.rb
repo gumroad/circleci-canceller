@@ -5,6 +5,7 @@ include Clockwork
 API_TOKEN = ENV["CIRCLECI_API_TOKEN"]
 USERNAME = ENV["CIRCLECI_USERNAME"]
 PROJECT = ENV["CIRCLECI_PROJECT"]
+BRANCHES_TO_IGNORE = (ENV["BRANCHES_TO_IGNORE"] || "").split
 
 LOG = Logger.new(STDOUT)
 LOG.level = Logger::WARN
@@ -18,6 +19,7 @@ handler do |job|
   branch_builds = {}
   circleci.recent_builds.each do |build|
     next if build["lifecycle"] == "finished"
+    next if BRANCHES_TO_IGNORE.include?(build["branch"])
     (branch_builds[build["branch"]] ||= []) << build
   end
 
