@@ -22,7 +22,7 @@ handler do |job|
   # Build the hash of branches => builds.
   branch_builds = {}
   circleci.recent_builds.each do |build|
-    next if build["lifecycle"] == "finished"
+    next if build["lifecycle"] == "finished" || build["lifecycle"] == "not_run"
     case
     when BRANCHES_TO_IGNORE.include?(build["branch"])
       log_build(build, "ignoring")
