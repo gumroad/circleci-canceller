@@ -6,6 +6,7 @@ API_TOKEN = ENV["CIRCLECI_API_TOKEN"]
 USERNAME = ENV["CIRCLECI_USERNAME"]
 PROJECT = ENV["CIRCLECI_PROJECT"]
 BRANCHES_TO_IGNORE = (ENV["BRANCHES_TO_IGNORE"] || "").split
+BRANCHES_THAT_DEPLOY = (ENV["BRANCHES_THAT_DEPLOY"] || "").split
 
 LOG = Logger.new(STDOUT)
 LOG.level = Logger::WARN
@@ -23,14 +24,22 @@ handler do |job|
   branch_builds = {}
   circleci.recent_builds.each do |build|
     next if build["lifecycle"] == "finished" || build["lifecycle"] == "not_run"
+
+    excluded = false
+
     case
     when BRANCHES_TO_IGNORE.include?(build["branch"])
       log_build(build, "ignoring")
-    when build["steps"] && build["steps"].any? { |step| step["actions"].any? { |action| action["type"] == "deployment" } }
-      log_build(build, "ignoring because it's in deployment stage")
-    else
-      (branch_builds[build["branch"]] ||= []) << build
+      excluded = true
+    when BRANCHES_THAT_DEPLOY.include?(build["branch"]) && build["lifecycle"] == "running"
+      build = circleci.get_build(build["build_num"])
+      if build["steps"].any? { |step| step["actions"].any? { |action| action["type"] == "deploy" } }
+        log_build(build, "ignoring because it's in deployment stage")
+        excluded = true
+      end
     end
+
+    (branch_builds[build["branch"]] ||= []) << build unless excluded
   end
 
   branch_builds.each do |branch, builds|

@@ -17,3 +17,4 @@ Deploy to Heroku with the following environment variables:
 * CIRCLECI_USERNAME e.g. `gumroad`
 * CIRCLECI_PROJECT e.g. `web`
 * BRANCHES_TO_IGNORE space delimited e.g. `staging master`
+* BRANCHES_THAT_DEPLOY space delimited e.g. `deploy`

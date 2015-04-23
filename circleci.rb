@@ -1,28 +1,38 @@
-require "httparty"
+require "rest-client"
 require "json"
 
 class CircleCi
-  include HTTParty
-  base_uri "https://circleci.com/api/v1"
 
   def initialize(api_token, username, project)
     @api_token = api_token
     @username = username
     @project = project
-    @options = {
-      "headers" => {
-        "Accept" => "application/json"
-      }
-    }
+    @base = "https://circleci.com/api/v1"
   end
 
   def recent_builds
-    response = self.class.get("/project/#{@username}/#{@project}?circle-token=#{@api_token}", @options)
-    JSON.parse(response.body)
+    response = RestClient.get("#{@base}/project/#{@username}/#{@project}", options)
+    JSON.parse(response.to_str)
+  end
+
+  def get_build(build_number)
+    response = RestClient.get("#{@base}/project/#{@username}/#{@project}/#{build_number}", options)
+    JSON.parse(response.to_str)
   end
 
   def cancel_build(build_number)
-    response = self.class.post("/project/#{@username}/#{@project}/#{build_number}/cancel?circle-token=#{@api_token}", @options)
-    JSON.parse(response.body)
+    response = RestClient.post("#{@base}/project/#{@username}/#{@project}/#{build_number}/cancel", nil, options)
+    JSON.parse(response.to_str)
+  end
+
+  private
+
+  def options
+    {
+      accept: :json,
+      params: {
+        "circle-token" => @api_token
+      }
+    }
   end
 end
