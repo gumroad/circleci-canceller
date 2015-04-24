@@ -13,8 +13,20 @@ A clockwork application that cancels superfluous builds in queue or running.
 
 Deploy to Heroku with the following environment variables:
 
-* CIRCLECI_API_TOKEN e.g. `a17098...`
 * CIRCLECI_USERNAME e.g. `gumroad`
-* CIRCLECI_PROJECT e.g. `web`
-* BRANCHES_TO_IGNORE space delimited e.g. `staging master`
-* BRANCHES_THAT_DEPLOY space delimited e.g. `deploy`
+* CIRCLECI_PROJECTS e.g. `web api`
+* CIRCLECI_API_TOKEN_[project] e.g. `a17098...`
+* BRANCHES_TO_IGNORE_[project] e.g. `master staging`
+* BRANCHES_THAT_DEPLOY_[project] e.g. `deploy`
+
+```bash
+CIRCLECI_USERNAME=gumroad
+CIRCLECI_PROJECTS=web api
+
+CIRCLECI_API_TOKEN_web=a17098...
+BRANCHES_TO_IGNORE_web=master staging
+BRANCHES_THAT_DEPLOY_web=deploy
+
+CIRCLECI_API_TOKEN_api=ba7698...
+BRANCHES_THAT_DEPLOY_api=master
+```
