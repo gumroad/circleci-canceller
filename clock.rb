@@ -18,7 +18,8 @@ module Clockwork
       api_token = ENV["CIRCLECI_API_TOKEN_#{project}"] || API_TOKEN
       branches_to_ignore = (ENV["BRANCHES_TO_IGNORE_#{project}"] || "").split
       branches_that_deploy = (ENV["BRANCHES_THAT_DEPLOY_#{project}"] || "").split
-      JobCancel.perform(api_token, USERNAME, project, branches_to_ignore, branches_that_deploy)
+      branches_with_safe_time = Hash[(ENV["BRANCHES_WITH_SAFE_TIME_#{project}"] || "").split.map { |branch_config| branch_config.split(",") }]
+      JobCancel.perform(api_token, USERNAME, project, branches_to_ignore, branches_that_deploy, branches_with_safe_time)
     end
   end
 end

@@ -34,5 +34,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  activesupport
   clockwork
   rest-client

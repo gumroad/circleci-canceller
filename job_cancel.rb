@@ -3,7 +3,7 @@ require_relative "circleci"
 module JobCancel
   module_function
 
-  def perform(api_token, username, project, branches_to_ignore, branches_to_deploy)
+  def perform(api_token, username, project, branches_to_ignore, branches_to_deploy, branches_with_safe_time)
     circleci = CircleCi.new(api_token, username, project)
 
     # Build the hash of branches => builds.
@@ -13,11 +13,21 @@ module JobCancel
 
       excluded = false
 
-      case
-      when branches_to_ignore.include?(build["branch"])
+      # exclude builds for ignored branches
+      if branches_to_ignore.include?(build["branch"])
         log_build(build, "ignoring")
         excluded = true
-      when branches_to_deploy.include?(build["branch"]) && build["lifecycle"] == "running"
+      end
+
+      # exclude builds for branches with safe times, if they've been building for more than their safe time
+      safe_time = branches_with_safe_time[build["branch"]]
+      if build["start_time"] && safe_time && Time.now >= Time.parse(build["start_time"]) + safe_time.to_i.minutes
+        log_build(build, "ignoring because it has been running for more than #{safe_time} minutes.")
+        excluded = true
+      end
+
+      # exclude builds that are in the deployment phase
+      if !excluded && branches_to_deploy.include?(build["branch"]) && build["lifecycle"] == "running"
         build = circleci.get_build(build["build_num"])
         if build["steps"].any? { |step| step["actions"].any? { |action| action["type"] == "deploy" } }
           log_build(build, "ignoring because it's in deployment stage")
