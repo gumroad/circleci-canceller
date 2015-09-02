@@ -42,9 +42,11 @@ module JobCancel
       # Sort the builds of the branch oldest to newest.
       builds.sort_by! { |build| build["build_num"] }
 
-      # Remove the last build for each branch, we want to keep it.
-      log_build(builds.last, "keeping")
-      builds.pop
+      # Remove the last build for each branch if it's not merged into deploy, we want to keep it running.
+      unless circleci.is_build_in_deploy(builds.last["build_num"])
+        log_build(builds.last, "keeping")
+        builds.pop
+      end
 
       # Cancel the remaining builds.
       builds.each do |build|

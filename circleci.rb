@@ -25,6 +25,14 @@ class CircleCi
     JSON.parse(response.to_str)
   end
 
+  def is_build_in_deploy(build_number)
+    revision = get_build(build_number)["vcs_revision"]
+
+    circleci.recent_builds.any? do |build|
+      build["vcs_revision"] == revision && build["branch"] == "deploy"
+    end
+  end
+
   private
 
   def options
