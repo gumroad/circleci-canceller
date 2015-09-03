@@ -26,10 +26,10 @@ class CircleCi
   end
 
   def is_build_in_deploy(build_number)
-    revision = get_build(build_number)["vcs_revision"]
+    branch = get_build(build_number)["branch"]
 
-    circleci.recent_builds.any? do |build|
-      build["vcs_revision"] == revision && build["branch"] == "deploy"
+    recent_builds.any? do |build|
+      build["subject"].split("from gumroad/").length == 2 && build["subject"].split("from gumroad/")[1] == branch && build["branch"] == "deploy"
     end
   end
 
