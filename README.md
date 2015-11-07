@@ -1,4 +1,4 @@
-# GircleCI
+# CircleCI Canceller
 
 A clockwork application that cancels superfluous builds in queue or running.
 
